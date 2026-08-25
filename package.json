@@ -1,6 +1,10 @@
 {
   "name": "pretty-node-snapshot",
   "description": "Readable, Jest-style snapshot formatting and path resolution for Node.js native test runner.",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/eduardomourar/pretty-node-snapshot.git"
+  },
   "scripts": {
     "build": "projen build",
     "bump": "projen bump",
@@ -30,11 +34,16 @@
     "eslint-import-resolver-alias": "^1.1.2",
     "eslint-import-resolver-typescript": "^4.4.5",
     "eslint-plugin-import": "^2.32.0",
+    "pretty-format": "^30.4.1",
     "projen": "^0.103.2"
   },
-  "dependencies": {
-    "pretty-format": "^30.4.1"
-  },
+  "keywords": [
+    "node:test",
+    "nodejs",
+    "pretty-format",
+    "snapshot",
+    "test"
+  ],
   "engines": {
     "node": ">= 24"
   },
@@ -50,6 +59,9 @@
     "access": "public"
   },
   "version": "0.0.0",
+  "optionalDependencies": {
+    "pretty-format": "^30.4.1"
+  },
   "type": "module",
   "exports": {
     ".": "./src/index.js",
