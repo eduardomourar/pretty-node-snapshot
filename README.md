@@ -9,7 +9,7 @@ Readable, [Jest](https://jestjs.io)-style snapshot formatting and path resolutio
 
 `node:test` ships with basic snapshot testing (`t.assert.snapshot()` / `--test-update-snapshots`), but by default it serializes values with `JSON.stringify` and stores snapshots next to the test file with a `.snapshot` extension. This package gives it a more familiar, Jest-like setup:
 
-- **Readable serialization** via [`pretty-format`](https://www.npmjs.com/package/pretty-format) — the same formatter Jest uses — with a fallback to `util.inspect` when `pretty-format` isn't installed.
+- **Readable serialization** via [`pretty-format`](https://www.npmjs.com/package/pretty-format) — the same formatter Jest uses — with a fallback to `util.inspect`, tuned to read similarly, when `pretty-format` isn't installed.
 - **Familiar snapshot layout**: files are resolved into a `__snapshots__/` directory alongside each test file (e.g. `test/__snapshots__/index.test.js.snap`), instead of a sibling `.snapshot` file.
 
 ## Requirements

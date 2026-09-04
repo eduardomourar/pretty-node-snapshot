@@ -62,6 +62,46 @@ describe('prepareSerializer', () => {
     assert.equal(serialize(null), 'null');
     assert.equal(serialize(undefined), 'undefined');
   });
+
+  it('does not add numeric separators when pretty-format is not installed', () => {
+    const serialize = prepareSerializer({}, null);
+    assert.equal(serialize(123456789), '123456789');
+  });
+});
+
+describe('pretty-format similarity', () => {
+  const withPrettyFormat = prepareSerializer();
+  const withInspectFallback = prepareSerializer({}, null);
+
+  // Strips the cosmetic differences between pretty-format and util.inspect that this
+  // package doesn't try to reconcile (quoted keys, trailing commas, string quote style,
+  // Map/Set size prefixes), so the two outputs can be compared on shape and content.
+  const normalize = (text) => text
+    .replace(/^(\s*)"([^"]+)":/gm, '$1$2:')
+    .replace(/,(\s*[}\])])/g, '$1')
+    .replace(/"/g, '\'')
+    .replace(/\b(Map|Set)\(\d+\)/g, '$1');
+
+  const cases = {
+    'plain object': { b: 2, a: 1 },
+    'nested object and array': { list: [1, 2, { nested: true }], other: null },
+    'empty object': {},
+    'empty array': [],
+    'number': 42,
+    'boolean': true,
+    'null': null,
+    undefined,
+    'regexp': /abc/gi,
+    'map': new Map([['a', 1], ['b', 2]]),
+    'set': new Set([1, 2, 3]),
+    'nested arrays of objects': [{ a: 1 }, { b: 2 }],
+  };
+
+  for (const [name, value] of Object.entries(cases)) {
+    it(`formats ${name} with the same shape with and without pretty-format`, () => {
+      assert.equal(normalize(withInspectFallback(value)), normalize(withPrettyFormat(value)));
+    });
+  }
 });
 
 describe('loadFormatter', () => {

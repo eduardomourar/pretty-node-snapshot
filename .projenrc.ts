@@ -28,7 +28,7 @@ const project = new javascript.NodeProject({
   keywords: ['nodejs', 'test', 'snapshot', 'pretty-format', 'node:test'],
 });
 project.package.addField('optionalDependencies', {
-  'pretty-format': '^30.4.1',
+  'pretty-format': '^30',
 });
 project.package.addField('type', 'module');
 project.package.addField('exports', {

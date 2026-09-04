@@ -15,11 +15,14 @@ const FORMAT = {
   highlight: false,
 };
 
+// Tuned to read as close as reasonably possible to the `pretty-format` output above,
+// without trying to match it byte-for-byte (e.g. quoted keys, trailing commas, and
+// Map/Set size prefixes are left as `util.inspect` renders them).
 const INSPECT = {
   depth: null,
   sorted: true,
   compact: false,
-  numericSeparator: true,
+  numericSeparator: false,
 };
 
 /**
