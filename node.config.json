@@ -1,11 +1,11 @@
 {
-  "$schema": "https://nodejs.org/dist/latest-v24.x/docs/node-config-schema.json",
   "nodeOptions": {
     "disable-warning": [
       "ExperimentalWarning"
     ],
-    "experimental-transform-types": true,
+    "enable-source-maps": true,
     "import": [
+      "amaro/transform",
       "./src/register.js"
     ]
   },
@@ -14,7 +14,8 @@
     "experimental-test-module-mocks": true,
     "test": true,
     "test-coverage-exclude": [
-      "**/test/**"
+      "**/test/**",
+      "**/__tests__/**"
     ],
     "test-reporter": [
       "spec",

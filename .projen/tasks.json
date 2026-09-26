@@ -37,7 +37,7 @@
         "BUMPFILE": "dist/version.txt",
         "RELEASETAG": "dist/releasetag.txt",
         "RELEASE_TAG_PREFIX": "",
-        "BUMP_PACKAGE": "commit-and-tag-version@^12"
+        "BUMP_PACKAGE": "commit-and-tag-version@^13"
       },
       "steps": [
         {
@@ -252,6 +252,29 @@
           "receiveArgs": true
         },
         {
+          "exec": "mkdir -p test-reports"
+        },
+        {
+          "exec": "mkdir -p coverage"
+        },
+        {
+          "execArgs": [
+            "node",
+            "--experimental-config-file=node.config.json",
+            "--test-update-snapshots",
+            "**/test/**/*.{cjs,mjs,js,jsx,cts,mts,ts,tsx}",
+            "**/test.{cjs,mjs,js,jsx,cts,mts,ts,tsx}",
+            "**/test-*.{cjs,mjs,js,jsx,cts,mts,ts,tsx}",
+            "**/*.test.{cjs,mjs,js,jsx,cts,mts,ts,tsx}",
+            "**/*-test.{cjs,mjs,js,jsx,cts,mts,ts,tsx}",
+            "**/*_test.{cjs,mjs,js,jsx,cts,mts,ts,tsx}",
+            "**/__tests__/**/*.{cjs,mjs,js,jsx,cts,mts,ts,tsx}",
+            "**/spec.{cjs,mjs,js,jsx,cts,mts,ts,tsx}",
+            "**/*.spec.{cjs,mjs,js,jsx,cts,mts,ts,tsx}"
+          ],
+          "receiveArgs": true
+        },
+        {
           "spawn": "eslint"
         }
       ]
@@ -261,7 +284,20 @@
       "description": "Run tests in watch mode",
       "steps": [
         {
-          "exec": "node --experimental-config-file='./node.config.json' --watch"
+          "execArgs": [
+            "node",
+            "--experimental-config-file=node.config.json",
+            "--watch",
+            "**/test/**/*.{cjs,mjs,js,jsx,cts,mts,ts,tsx}",
+            "**/test.{cjs,mjs,js,jsx,cts,mts,ts,tsx}",
+            "**/test-*.{cjs,mjs,js,jsx,cts,mts,ts,tsx}",
+            "**/*.test.{cjs,mjs,js,jsx,cts,mts,ts,tsx}",
+            "**/*-test.{cjs,mjs,js,jsx,cts,mts,ts,tsx}",
+            "**/*_test.{cjs,mjs,js,jsx,cts,mts,ts,tsx}",
+            "**/__tests__/**/*.{cjs,mjs,js,jsx,cts,mts,ts,tsx}",
+            "**/spec.{cjs,mjs,js,jsx,cts,mts,ts,tsx}",
+            "**/*.spec.{cjs,mjs,js,jsx,cts,mts,ts,tsx}"
+          ]
         }
       ]
     },
@@ -274,7 +310,7 @@
         "BUMPFILE": "dist/version.txt",
         "RELEASETAG": "dist/releasetag.txt",
         "RELEASE_TAG_PREFIX": "",
-        "BUMP_PACKAGE": "commit-and-tag-version@^12"
+        "BUMP_PACKAGE": "commit-and-tag-version@^13"
       },
       "steps": [
         {

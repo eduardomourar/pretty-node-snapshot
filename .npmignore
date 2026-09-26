@@ -9,6 +9,9 @@ coverage/
 test/
 .eslintrc.json
 node.config.json
+/coverage/
+/test-reports/
+/node.config.json
 /.eslintrc.json
 /.projenrc.ts
 /tsconfig.projen.json

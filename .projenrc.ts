@@ -42,6 +42,20 @@ project.npmignore?.exclude('test/');
 project.npmignore?.exclude('.eslintrc.json');
 project.npmignore?.exclude('node.config.json');
 
+const testRunner = new javascript.NodeNativeTestRunner(project, {
+  transformTypes: true,
+  testConfig: {
+    experimentalTestModuleMocks: true,
+  },
+  nodeOptions: {
+    disableWarning: ['ExperimentalWarning'],
+    import: [
+      './src/register.js',
+    ],
+  },
+});
+testRunner.removeReporter('junit');
+
 const eslint = new javascript.Eslint(project, {
   aliasMap: {},
   ignorePatterns: [

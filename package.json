@@ -28,14 +28,15 @@
     "@types/node": "^24",
     "@typescript-eslint/eslint-plugin": "^8",
     "@typescript-eslint/parser": "^8",
-    "commit-and-tag-version": "^12",
+    "amaro": "^1.2.1",
+    "commit-and-tag-version": "^13",
     "constructs": "^10.0.0",
     "eslint": "^9",
     "eslint-import-resolver-alias": "^1",
     "eslint-import-resolver-typescript": "^4",
     "eslint-plugin-import": "^2",
     "pretty-format": "^30",
-    "projen": "^0.103.2"
+    "projen": "^0.103.27"
   },
   "keywords": [
     "node:test",
