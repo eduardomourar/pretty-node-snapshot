@@ -36,6 +36,8 @@ jspm_packages/
 !/.github/workflows/release.yml
 !/.github/dependabot.yml
 !/.github/pull_request_template.md
+!/tsconfig.dts.json
+/types/
 /coverage/
 /test-reports/
 !/node.config.json

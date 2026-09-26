@@ -20,4 +20,5 @@
 /node.config.json linguist-generated
 /package-lock.json linguist-generated
 /package.json linguist-generated
+/tsconfig.dts.json linguist-generated linguist-language=JSON-with-Comments
 /tsconfig.projen.json linguist-generated linguist-language=JSON-with-Comments

@@ -24,6 +24,8 @@ const project = new javascript.NodeProject({
   devDeps: [
     '@types/node@^24',
     'pretty-format',
+    // Pin to the TypeScript major projen resolves by default so `tsc` (declaration emit) is stable.
+    'typescript@^6',
   ],
   keywords: ['nodejs', 'test', 'snapshot', 'pretty-format', 'node:test'],
 });
@@ -31,10 +33,41 @@ project.package.addField('optionalDependencies', {
   'pretty-format': '^30',
 });
 project.package.addField('type', 'module');
+project.package.addField('types', './types/index.d.ts');
 project.package.addField('exports', {
-  '.': './src/index.js',
-  './register': './src/register.js',
+  '.': {
+    types: './types/index.d.ts',
+    default: './src/index.js',
+  },
+  './register': {
+    types: './types/register.d.ts',
+    default: './src/register.js',
+  },
 });
+
+// Emit .d.ts files from the JSDoc-typed sources so consumers get types without a build runtime.
+// Declarations land in `types/` (a separate outDir) so repeated builds don't treat the emitted
+// files as compiler inputs (TS5055).
+const dtsConfig = new javascript.TypescriptConfig(project, {
+  fileName: 'tsconfig.dts.json',
+  compilerOptions: {
+    allowJs: true,
+    checkJs: false,
+    declaration: true,
+    emitDeclarationOnly: true,
+    module: 'nodenext',
+    moduleResolution: javascript.TypeScriptModuleResolution.NODE_NEXT,
+    target: 'esnext',
+    types: ['node'],
+    outDir: 'types',
+    rootDir: 'src',
+  },
+  include: ['src/**/*.js'],
+  exclude: ['node_modules', 'coverage', 'test'],
+});
+project.compileTask.exec(`tsc --project ${dtsConfig.fileName}`);
+project.gitignore.exclude('/types/');
+project.npmignore?.include('types/**/*.d.ts');
 project.npmignore?.exclude('.claude/');
 project.npmignore?.exclude('.github/');
 project.npmignore?.exclude('coverage/');

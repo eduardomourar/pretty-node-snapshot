@@ -3,6 +3,8 @@
 permissions-backup.acl
 /dist/changelog.md
 /dist/version.txt
+/tsconfig.dts.json
+!types/**/*.d.ts
 .claude/
 .github/
 coverage/

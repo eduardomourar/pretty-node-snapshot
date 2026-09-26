@@ -115,7 +115,12 @@
     },
     "compile": {
       "name": "compile",
-      "description": "Only compile"
+      "description": "Only compile",
+      "steps": [
+        {
+          "exec": "tsc --project tsconfig.dts.json"
+        }
+      ]
     },
     "default": {
       "name": "default",
