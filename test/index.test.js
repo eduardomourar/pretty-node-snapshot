@@ -1,8 +1,10 @@
 import assert from 'node:assert/strict';
 import { snapshot, describe, it, mock } from 'node:test';
 import {
+  addSerializer,
   configureSnapshotPathResolver,
   configureSnapshotSerializer,
+  getSerializers,
   loadFormatter,
   preparePathResolver,
   prepareSerializer,
@@ -66,6 +68,67 @@ describe('prepareSerializer', () => {
   it('does not add numeric separators when pretty-format is not installed', () => {
     const serialize = prepareSerializer({}, null);
     assert.equal(serialize(123456789), '123456789');
+  });
+
+  it('applies plugins passed through options', () => {
+    const plugin = {
+      test: (value) => typeof value === 'object' && value !== null && 'brand' in value,
+      serialize: (value) => `BRAND<${value.brand}>`,
+    };
+    const serialize = prepareSerializer({ plugins: [plugin] });
+    assert.equal(serialize({ brand: 'acme' }), 'BRAND<acme>');
+  });
+
+  it('does not pass a plugins option to util.inspect fallback', () => {
+    const formatter = null;
+    const serialize = prepareSerializer({ plugins: [{ test: () => true, serialize: () => 'x' }] }, formatter);
+    assert.equal(serialize({ a: 1 }), '{\n  a: 1\n}');
+  });
+});
+
+describe('addSerializer', () => {
+  it('registers a plugin used by serializers built afterwards', () => {
+    const before = getSerializers();
+    const plugin = {
+      test: (value) => typeof value === 'object' && value !== null && 'secret' in value,
+      serialize: () => 'REDACTED',
+    };
+    try {
+      addSerializer(plugin);
+      const serialize = prepareSerializer();
+      assert.equal(serialize({ secret: 'password' }), 'REDACTED');
+      assert.equal(getSerializers().length, before.length + 1);
+    } finally {
+      // Restore the registry so this test does not leak into others.
+      const current = getSerializers();
+      current.splice(0, current.length - before.length);
+    }
+  });
+
+  it('gives option plugins precedence over registered plugins', () => {
+    const before = getSerializers();
+    const registered = {
+      test: (value) => typeof value === 'object' && value !== null && 'kind' in value,
+      serialize: () => 'REGISTERED',
+    };
+    const optionPlugin = {
+      test: (value) => typeof value === 'object' && value !== null && 'kind' in value,
+      serialize: () => 'OPTION',
+    };
+    try {
+      addSerializer(registered);
+      const serialize = prepareSerializer({ plugins: [optionPlugin] });
+      assert.equal(serialize({ kind: 'a' }), 'OPTION');
+    } finally {
+      const current = getSerializers();
+      current.splice(0, current.length - before.length);
+    }
+  });
+
+  it('returns a copy of the registry that cannot mutate internal state', () => {
+    const snapshotList = getSerializers();
+    snapshotList.push({ test: () => true, serialize: () => 'x' });
+    assert.equal(getSerializers().length, snapshotList.length - 1);
   });
 });
 
@@ -141,6 +204,31 @@ describe('preparePathResolver', () => {
   it('resolves a fallback snapshot path when the test is not associated with a file', () => {
     const resolve = preparePathResolver();
     assert.equal(resolve(undefined), '__snapshots__/repl.snap');
+  });
+
+  it('resolves the snapshot path with a custom extension', () => {
+    const resolve = preparePathResolver({ extension: '.snapshot' });
+    assert.equal(resolve('/project/test/index.test.js'), '/project/test/__snapshots__/index.test.js.snapshot');
+  });
+
+  it('strips the trailing .test segment when stripTestExtension is set', () => {
+    const resolve = preparePathResolver({ stripTestExtension: true });
+    assert.equal(resolve('/project/test/index.test.js'), '/project/test/__snapshots__/index.js.snap');
+  });
+
+  it('strips the trailing .spec segment when stripTestExtension is set', () => {
+    const resolve = preparePathResolver({ stripTestExtension: true });
+    assert.equal(resolve('/project/test/index.spec.js'), '/project/test/__snapshots__/index.js.snap');
+  });
+
+  it('leaves a base name without a test segment unchanged when stripTestExtension is set', () => {
+    const resolve = preparePathResolver({ stripTestExtension: true });
+    assert.equal(resolve('/project/test/index.js'), '/project/test/__snapshots__/index.js.snap');
+  });
+
+  it('combines dirSnapshot, extension, and stripTestExtension options', () => {
+    const resolve = preparePathResolver({ dirSnapshot: '__custom__', extension: '.snapshot', stripTestExtension: true });
+    assert.equal(resolve('/project/test/index.test.js'), '/project/test/__custom__/index.js.snapshot');
   });
 });
 

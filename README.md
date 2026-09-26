@@ -75,11 +75,44 @@ const serialize = prepareSerializer();
 const resolvePath = preparePathResolver({ dirSnapshot: '__custom__' });
 ```
 
+### Custom serializer plugins
+
+Register [`pretty-format` plugins](https://www.npmjs.com/package/pretty-format#writing-plugins) (e.g. `jest-serializer-html`, framework-specific serializers) to control how specific values render, mirroring Jest's `expect.addSnapshotSerializer`:
+
+```js
+import { addSerializer } from 'pretty-node-snapshot';
+import htmlSerializer from 'jest-serializer-html';
+
+addSerializer(htmlSerializer);
+```
+
+Plugins registered with `addSerializer` apply to every serializer built afterwards. To scope plugins to a single serializer, pass them through options instead — these take precedence over globally registered plugins:
+
+```js
+const serialize = prepareSerializer({ plugins: [htmlSerializer] });
+```
+
+Plugins only affect `pretty-format` output; they are ignored by the `util.inspect` fallback.
+
+### Custom snapshot file naming
+
+`preparePathResolver` accepts `extension` and `stripTestExtension` alongside `dirSnapshot`:
+
+```js
+const resolvePath = preparePathResolver({
+  dirSnapshot: '__snapshots__',
+  extension: '.snapshot',   // default: '.snap'
+  stripTestExtension: true, // index.test.js -> __snapshots__/index.js.snapshot
+});
+```
+
 ## API
 
-- `prepareSerializer(options?, formatter?)` — returns a `(value) => string` serializer. Strings are passed through unchanged; other values are formatted with `pretty-format` (or `util.inspect` as a fallback). `options` are forwarded to the formatter.
+- `prepareSerializer(options?, formatter?)` — returns a `(value) => string` serializer. Strings are passed through unchanged; other values are formatted with `pretty-format` (or `util.inspect` as a fallback). `options` are forwarded to the formatter; `options.plugins` are merged ahead of any plugins registered with `addSerializer` and are ignored by the `util.inspect` fallback.
+- `addSerializer(plugin)` — registers a `pretty-format` plugin used by every serializer built afterwards (Jest-style precedence: last registered wins).
+- `getSerializers()` — returns a copy of the currently registered plugins.
 - `configureSnapshotSerializer(options?)` — registers `prepareSerializer(options)` as the default snapshot serializer via `node:test`'s `snapshot.setDefaultSnapshotSerializers`.
-- `preparePathResolver(options?)` — returns a `(testFilePath) => string` resolver that maps a test file to `<dir>/<dirSnapshot>/<basename>.snap`. `options.dirSnapshot` defaults to `__snapshots__`.
+- `preparePathResolver(options?)` — returns a `(testFilePath) => string` resolver that maps a test file to `<dir>/<dirSnapshot>/<basename><extension>`. `options.dirSnapshot` defaults to `__snapshots__`, `options.extension` defaults to `.snap`, and `options.stripTestExtension` (default `false`) drops a trailing `.test`/`.spec` segment from the base name.
 - `configureSnapshotPathResolver(options?)` — registers `preparePathResolver(options)` via `node:test`'s `snapshot.setResolveSnapshotPath`.
 - `loadFormatter(importPrettyFormat?)` — attempts to dynamically import `pretty-format`, resolving to `null` if it isn't installed.
 - `registerSnapshot(snapshotApi)` (from `pretty-node-snapshot/register`) — wires up the serializer and path resolver on the given `node:test` `snapshot` namespace, or warns if it's unavailable/incomplete.

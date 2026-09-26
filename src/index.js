@@ -3,8 +3,17 @@ import { snapshot } from 'node:test';
 import { inspect } from 'node:util';
 
 /** @typedef {(value: unknown, options?: Record<string, unknown>) => string} Formatter */
+/** @typedef {import('pretty-format').Plugin} Plugin */
 
 const DEFAULT_SNAPSHOT_DIR = '__snapshots__';
+const DEFAULT_SNAPSHOT_EXTENSION = '.snap';
+
+/**
+ * Serializer plugins applied to every value formatted with `pretty-format`.
+ *
+ * @type {Plugin[]}
+ */
+const plugins = [];
 
 const FORMAT = {
   escapeRegex: true,
@@ -43,12 +52,31 @@ export const loadFormatter = async (importPrettyFormat = () => import('pretty-fo
 const format = await loadFormatter();
 
 /**
+ * Registers a `pretty-format` plugin for use by every serializer built afterwards.
+ *
+ * Plugins registered here are merged ahead of any passed through serializer options,
+ * matching Jest's `expect.addSnapshotSerializer` precedence.
+ * @param {Plugin} plugin A `pretty-format` plugin.
+ * @returns {void}
+ */
+export const addSerializer = (plugin) => {
+  plugins.unshift(plugin);
+};
+
+/**
+ * Returns the currently registered `pretty-format` plugins.
+ * @returns {Plugin[]}
+ */
+export const getSerializers = () => [...plugins];
+
+/**
  * Custom snapshot serializer for node:test
- * @param {Record<string, unknown>} [options] Options forwarded to the formatter.
+ * @param {Record<string, unknown>} [options] Options forwarded to the formatter. `options.plugins` are merged ahead of globally registered plugins.
  * @param {Formatter | null} [formatter] Formatter to use; defaults to the loaded `pretty-format`, or `null` to force `util.inspect`.
  * @returns {(value: unknown) => string}
  */
 export const prepareSerializer = (options = {}, formatter = format) => {
+  const { plugins: optionPlugins = [], ...formatOptions } = options;
   return (value) => {
   // Pass strings through raw to avoid extra quote escaping in snapshots
     /** @type {string} */
@@ -56,9 +84,16 @@ export const prepareSerializer = (options = {}, formatter = format) => {
     if (typeof value !== 'string') {
     // Format objects, arrays, DOM nodes, and complex data with pretty-format,
     // or util.inspect when pretty-format is not installed
-      result = formatter
-        ? formatter(value, { ...FORMAT, ...options })
-        : inspect(value, { ...INSPECT, ...options });
+      if (formatter) {
+        const mergedPlugins = [...optionPlugins, ...plugins];
+        result = formatter(value, {
+          ...FORMAT,
+          ...formatOptions,
+          ...(mergedPlugins.length ? { plugins: mergedPlugins } : {}),
+        });
+      } else {
+        result = inspect(value, { ...INSPECT, ...formatOptions });
+      }
     }
 
     return result.replace(/\r\n|\r/g, '\n');
@@ -77,7 +112,13 @@ export const configureSnapshotSerializer = (options = {}) => {
 /**
  * @typedef {Object} PathResolverOptions
  * @property {string} [dirSnapshot] Directory name (relative to the test file) where snapshots are stored.
+ * @property {string} [extension] Extension appended to the snapshot file. Defaults to `.snap`.
+ * @property {boolean} [stripTestExtension] Drop the trailing `.test`/`.spec` segment from the base name (e.g. `index.test.js` becomes `index`). Defaults to `false`.
  */
+
+// Matches a trailing `.test` or `.spec` segment before the file extension,
+// e.g. the `.test` in `index.test.js`.
+const TEST_EXTENSION = /\.(test|spec)(?=\.[^.]+$)/;
 
 /**
  * Builds a resolver that maps a test file path to its snapshot file path.
@@ -86,12 +127,16 @@ export const configureSnapshotSerializer = (options = {}) => {
  */
 export const preparePathResolver = (options = {}) => {
   const dirSnapshot = options.dirSnapshot ?? DEFAULT_SNAPSHOT_DIR;
+  const extension = options.extension ?? DEFAULT_SNAPSHOT_EXTENSION;
+  const stripTestExtension = options.stripTestExtension ?? false;
   return (testFilePath) => {
     // testFilePath is undefined when a test is not associated with a file (e.g. the REPL)
     const filePath = testFilePath ?? 'repl';
     const dir = dirname(filePath);
-    const base = basename(filePath);
-    return join(dir, dirSnapshot, `${base}.snap`);
+    const base = stripTestExtension
+      ? basename(filePath).replace(TEST_EXTENSION, '')
+      : basename(filePath);
+    return join(dir, dirSnapshot, `${base}${extension}`);
   };
 };
 
