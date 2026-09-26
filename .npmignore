@@ -3,6 +3,7 @@
 permissions-backup.acl
 /dist/changelog.md
 /dist/version.txt
+/.mergify.yml
 /tsconfig.dts.json
 !types/**/*.d.ts
 .claude/

@@ -9,3 +9,7 @@ updates:
       interval: weekly
     ignore:
       - dependency-name: projen
+    labels:
+      - auto-approve
+      - dependencies
+      - javascript

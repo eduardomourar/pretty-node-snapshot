@@ -19,8 +19,14 @@ const project = new javascript.NodeProject({
   dependabot: true,
   dependabotOptions: {
     scheduleInterval: github.DependabotScheduleInterval.WEEKLY,
+    labels: ['auto-approve', 'dependencies', 'javascript'],
   },
-  autoMerge: false,
+  autoMerge: true,
+  autoApproveUpgrades: true,
+  autoApproveOptions: {
+    allowedUsernames: ['dependabot[bot]'],
+    label: 'auto-approve',
+  },
   devDeps: [
     '@types/node@^24',
     'pretty-format',
